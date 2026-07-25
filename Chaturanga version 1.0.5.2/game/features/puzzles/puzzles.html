@@ -96,8 +96,8 @@
         <button id="pzHintBtn" style="background:transparent;border:1px solid var(--border,rgba(201,168,76,.18));color:var(--gold,#c9a84c);border-radius:6px;padding:5px 14px;cursor:pointer;font-size:.75rem">
           <i class="fa-solid fa-lightbulb"></i> Hint
         </button>
-        <button onclick="if(currentPuzzle) globalThis.location.href='../../lessons/acharya.html?puzzleId='+encodeURIComponent(currentPuzzle.id)" style="background:#c9a84c;border:none;color:#000000;border-radius:6px;padding:5px 14px;cursor:pointer;font-size:0.8rem;font-weight:700">
-          <i class="fa-solid fa-graduation-cap"></i> Ask Acharya
+        <button id="pzSolutionBtn" style="background:#c9a84c;border:none;color:#000000;border-radius:6px;padding:5px 14px;cursor:pointer;font-size:0.8rem;font-weight:700">
+          <i class="fa-solid fa-key"></i> Solution
         </button>
       </div>
     </div>
@@ -382,12 +382,37 @@ function updateStats() {
   wEl.innerHTML=solved.length?solved.map(p=>'<div style="margin-bottom:8px;padding:6px;background:rgba(201,168,76,.06);border-radius:6px"><div style="color:var(--gold,#c9a84c);font-size:.72rem;font-weight:600">'+p.title+'</div><div style="color:#bbb;font-size:.68rem;margin-top:2px;font-style:italic">'+p.moralLesson.slice(0,80)+'…</div></div>').join(''):'<p style="color:#bbb">Solve puzzles to unlock wisdom.</p>';
 }
 
-// ── Hint button ────────────────────────────────────────────────────────
+// ── Hint & Solution buttons ────────────────────────────────────────────
 document.getElementById('pzHintBtn').onclick=()=>{
   if (!puzzleState) return;
   const hint=globalThis.ChaturangaPuzzleEngine.getHint(puzzleState);
-  document.getElementById('pzHint').textContent='Hint: '+hint;
+  document.getElementById('pzHint').innerHTML='<strong>Hint:</strong> '+hint;
   document.getElementById('pzHint').style.display='block';
+};
+
+function getPuzzleSolutionText(p) {
+  if (!p || !p.solution || !p.solution.length) return "No solution available for this puzzle.";
+  const moves = p.solution.map((step) => {
+    let pName = 'Piece';
+    const pieceObj = boardMap.get(step.from);
+    if (pieceObj && pieceObj.type) {
+      pName = PIECE_NAMES[pieceObj.type] || pieceObj.type;
+    } else if (p.boardState && p.boardState[step.from]) {
+      const type = p.boardState[step.from].split(':')[1];
+      pName = PIECE_NAMES[type] || type;
+    }
+    pName = pName.charAt(0).toUpperCase() + pName.slice(1);
+    return `Move ${pName} from ${step.from} to ${step.to}`;
+  });
+  return moves.length === 1 ? moves[0] : moves.map((m, i) => `${i + 1}. ${m}`).join(' → ');
+}
+
+document.getElementById('pzSolutionBtn').onclick=()=>{
+  if (!currentPuzzle) return;
+  const solText = getPuzzleSolutionText(currentPuzzle);
+  const hintEl = document.getElementById('pzHint');
+  hintEl.innerHTML = '<i class="fa-solid fa-key" style="color:var(--gold,#c9a84c)"></i> <strong>Solution:</strong> ' + solText;
+  hintEl.style.display = 'block';
 };
 
 // ── Init ───────────────────────────────────────────────────────────────
