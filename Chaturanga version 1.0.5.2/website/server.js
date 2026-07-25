@@ -28,7 +28,7 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             try {
                 const puzzleData = JSON.parse(body);
-                const puzzlesFilePath = path.join(root, 'Chaturanga-version-1.0.5', 'puzzles', 'puzzle-data.js');
+                const puzzlesFilePath = path.join(root, 'Chaturanga version 1.0.5.2', 'puzzles', 'puzzle-data.js');
                 
                 // Read current puzzle file
                 let content = fs.readFileSync(puzzlesFilePath, 'utf8');
@@ -70,7 +70,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, () => {
-    console.log('Chaturanga v1.0.5 Web Server running at http://localhost:' + port);
+    console.log('Chaturanga v1.0.5.2 Web Server running at http://localhost:' + port);
     console.log('Backend API and WebSocket Multiplayer active.');
 });
 

@@ -16,11 +16,123 @@ const mimeTypes = {
     '.pdf': 'application/pdf'
 };
 
+const http = require('http');
+
+// Global cache for Chaturanga Dataset
+let chaturangaDataset = [];
+const datasetPath = path.join(root, 'Chatbot Dataset', 'dataset.jsonl');
+
+function loadDataset() {
+    try {
+        if (fs.existsSync(datasetPath)) {
+            const content = fs.readFileSync(datasetPath, 'utf8');
+            chaturangaDataset = content.split('\n')
+                .filter(line => line.trim())
+                .map(line => {
+                    try { return JSON.parse(line); } catch (e) { return null; }
+                })
+                .filter(item => item !== null);
+            console.log(`[Chatbot] Loaded ${chaturangaDataset.length} entries from dataset.`);
+        } else {
+            console.warn(`[Chatbot] Dataset not found at ${datasetPath}`);
+        }
+    } catch (err) {
+        console.error('[Chatbot] Failed to load dataset:', err);
+    }
+}
+loadDataset();
+
+function searchDataset(query, topK = 5) {
+    const q = query.toLowerCase().trim();
+    const words = q.split(/\s+/).filter(w => w.length > 2);
+    
+    const scored = chaturangaDataset.map(item => {
+        const text = (item.prompt + ' ' + item.response).toLowerCase();
+        let score = 0;
+        if (text.includes(q)) score += 10;
+        words.forEach(w => { if (text.includes(w)) score += 1; });
+        return { ...item, score };
+    });
+
+    return scored
+        .filter(s => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK)
+        .map(s => `Q: ${s.prompt.replace('User: ', '')}\nA: ${s.response}`)
+        .join('\n\n');
+}
+
 const server = http.createServer((req, res) => {
+    // Add CORS headers for local development
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+
     let urlPath = req.url.split('?')[0];
     if (urlPath === '/') urlPath = '/website/index.html';
     
-    // Handle API endpoints
+    // Handle Chatbot API
+    if (req.method === 'POST' && urlPath === '/api/rag') {
+        let body = '';
+        req.on('data', chunk => { body += chunk.toString(); });
+        req.on('end', async () => {
+            try {
+                const { query } = JSON.parse(body);
+                if (!query) throw new Error('No query provided');
+
+                const context = searchDataset(query);
+                const SARVAM_API_KEY = process.env.SARVAM_API_KEY || 'sk_5013jazx_gfsY5DBE93s7WfpinTHS3Afs';
+
+                const apiResponse = await fetch('https://api.sarvam.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SARVAM_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'sarvam-2',
+                        messages: [
+                            { 
+                                role: 'system', 
+                                content: `You are the Chaturanga Assistant. Use this context:\n${context}\n\nRules: Answer based on context if possible. Use regal tone. Support Hinglish.` 
+                            },
+                            { role: 'user', content: query }
+                        ],
+                        temperature: 0.6
+                    })
+                });
+
+                const data = await apiResponse.json();
+                
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ 
+                        success: true, 
+                        answer: data.choices[0].message.content,
+                        contextUsed: context
+                    }));
+                } else {
+                    console.error('[Chatbot] AI API returned no choices:', data);
+                    throw new Error(data.error?.message || 'AI API Error: No response content');
+                }
+            } catch (err) {
+                console.error('[Chatbot] API Error:', err.message);
+                if (!res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: err.message }));
+                }
+            }
+        });
+        return;
+    }
+
+    // Handle Admin Puzzle API
     if (req.method === 'POST' && urlPath === '/api/admin/puzzle') {
         let body = '';
         req.on('data', chunk => { body += chunk.toString(); });
@@ -33,7 +145,6 @@ const server = http.createServer((req, res) => {
                 let content = fs.readFileSync(puzzlesFilePath, 'utf8');
                 
                 // Inject the new puzzle into the global array
-                // Matches: window.ChaturangaPuzzleData = [ ... ];
                 const regex = /(window\.ChaturangaPuzzleData\s*=\s*\[)([\s\S]*?)(\];)/;
                 if (regex.test(content)) {
                     const newContent = content.replace(regex, (match, p1, p2, p3) => {
