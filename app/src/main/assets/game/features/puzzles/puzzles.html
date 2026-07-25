@@ -28,8 +28,18 @@
     .pz-card-title{font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold,#c9a84c);margin-bottom:4px}
     .pz-card-meta{font-size:.68rem;color:#bbb}
     .pz-rating{font-weight:700}
-    .pz-board{display:grid;grid-template-columns:repeat(8,var(--sq));margin:12px auto;width:calc(var(--sq)*8)}
+    .pz-board-wrap{display:flex;flex-direction:column;align-items:center;margin:8px auto}
+    .pz-coords-files{display:flex;width:calc(var(--sq)*8);justify-content:space-around;font-size:0.75rem;font-weight:700;color:var(--gold,#c9a84c);opacity:0.8;height:20px;line-height:20px}
+    .pz-coords-files span{width:var(--sq);text-align:center;display:block}
+    .pz-coords-ranks{display:flex;flex-direction:column;justify-content:space-around;height:calc(var(--sq)*8);font-size:0.75rem;font-weight:700;color:var(--gold,#c9a84c);opacity:0.8;width:20px;text-align:center}
+    .pz-coords-ranks span{height:var(--sq);display:flex;align-items:center;justify-content:center}
+    .pz-board{display:grid;grid-template-columns:repeat(8,var(--sq));margin:0;width:calc(var(--sq)*8);border:2px solid var(--gold,#c9a84c);border-radius:4px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
     .pz-sq{width:var(--sq);height:var(--sq);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:background .15s}
+    .rank-label, .file-label { position: absolute; font-size: clamp(9px, calc(var(--sq) * 0.22), 11px); font-weight: 700; pointer-events: none; line-height: 1; z-index: 2; user-select: none; }
+    .rank-label { top: 3px; left: 4px; }
+    .file-label { bottom: 3px; right: 4px; }
+    .pz-sq.light .rank-label, .pz-sq.light .file-label { color: #b58863; }
+    .pz-sq.dark .rank-label, .pz-sq.dark .file-label { color: #f0d9b5; }
     .pz-sq.light{background:#f0d9b5}.pz-sq.dark{background:#b58863}
     .pz-sq.highlight{outline:3px solid var(--gold,#c9a84c);outline-offset:-3px}
     .pz-sq.selected{background:rgba(201,168,76,.5) !important}
@@ -89,7 +99,26 @@
       <h3 id="pzTitle" style="font-family:'Cinzel',serif;color:var(--gold,#c9a84c);margin-bottom:4px">Puzzle</h3>
       <div id="pzTypeBadge" style="font-size:.72rem;color:#bbb;margin-bottom:10px"></div>
       <div id="pzStatus" class="pz-status"></div>
-      <div id="pzBoard" class="pz-board"></div>
+      <!-- Board Container with Coordinates (a-h and 1-8) -->
+      <div class="pz-board-wrap">
+        <div class="pz-coords-files" style="margin-bottom:4px">
+          <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
+        </div>
+        <div style="display:flex;align-items:center">
+          <div class="pz-coords-ranks" style="margin-right:8px">
+            <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+          </div>
+          
+          <div id="pzBoard" class="pz-board"></div>
+          
+          <div class="pz-coords-ranks" style="margin-left:8px">
+            <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+          </div>
+        </div>
+        <div class="pz-coords-files" style="margin-top:4px">
+          <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
+        </div>
+      </div>
       <div id="pzHint" class="pz-hint-box" style="display:none"></div>
       <div id="pzMoral" class="pz-moral" style="display:none"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -224,7 +253,18 @@ function createPzCell(sq, f, r) {
   if (selectedSq === sq) cell.classList.add('selected');
   const piece = boardMap.get(sq);
   if (legalSqs.includes(sq)) cell.classList.add(piece ? 'legal-capture' : 'legal-move');
-  
+  if (f === 0) {
+    const rLbl = document.createElement('span');
+    rLbl.className = 'rank-label';
+    rLbl.textContent = r;
+    cell.appendChild(rLbl);
+  }
+  if (r === 1) {
+    const fLbl = document.createElement('span');
+    fLbl.className = 'file-label';
+    fLbl.textContent = String.fromCodePoint(97 + f);
+    cell.appendChild(fLbl);
+  }
   if (piece) {
     const img = document.createElement('img');
     img.className = 'pz-piece';
