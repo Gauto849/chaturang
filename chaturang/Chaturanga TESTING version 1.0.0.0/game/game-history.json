@@ -148,5 +148,65 @@
     "gameType": "2bot",
     "roomCode": "UNJUSK",
     "ts": 1785590461462
+  },
+  {
+    "token": "msaeh7j9s4db5o32",
+    "userId": "6a6caf26b6d13e8dda80bec8",
+    "name": "GAUTOMATED",
+    "result": "quit",
+    "reason": "resign",
+    "gameType": "3bot",
+    "roomCode": "8P3H97",
+    "ts": 1785592191429
+  },
+  {
+    "token": "msafhtd108q556z4",
+    "userId": "6a6caf26b6d13e8dda80bec8",
+    "name": "GAUTOMATED",
+    "result": "quit",
+    "reason": "resign",
+    "gameType": "3bot",
+    "roomCode": "88PWAW",
+    "ts": 1785592222553
+  },
+  {
+    "token": "msafisotv49e94kn",
+    "userId": "6a6caf26b6d13e8dda80bec8",
+    "name": "GAUTOMATED",
+    "result": "quit",
+    "reason": "resign",
+    "gameType": "3bot",
+    "roomCode": "VWWJ28",
+    "ts": 1785592265348
+  },
+  {
+    "token": "msaej3husco26az9",
+    "userId": "6a6cb04886986cb380ac2ed3",
+    "name": "KAKA",
+    "result": "win",
+    "reason": "resign",
+    "gameType": "2bot",
+    "roomCode": "DQL9WC",
+    "ts": 1785592589323
+  },
+  {
+    "token": "msafpsl1lu65gdxf",
+    "userId": "6a6caf26b6d13e8dda80bec8",
+    "name": "GAUTOMATED",
+    "result": "quit",
+    "reason": "resign",
+    "gameType": "2bot",
+    "roomCode": "DQL9WC",
+    "ts": 1785592589353
+  },
+  {
+    "token": "msahvjo74dgednv7",
+    "userId": "6a6caf26b6d13e8dda80bec8",
+    "name": "GAUTOMATED",
+    "result": "quit",
+    "reason": "resign",
+    "gameType": "3bot",
+    "roomCode": "RYHLJX",
+    "ts": 1785596251604
   }
 ]
